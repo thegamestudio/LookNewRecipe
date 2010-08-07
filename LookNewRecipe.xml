@@ -4,6 +4,21 @@ xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
 
 	<Script file="LookNewRecipe.lua"/> 
  
+	<!-- Frame to handle all core events --> 
+	<Frame name="LookNewRecipe_core"> 
+		<Scripts>
+			<OnLoad>
+				this:RegisterEvent("VARIABLES_LOADED");
+			</OnLoad>
+
+			<OnEvent>
+				if (event == "VARIABLES_LOADED") then
+					LookNewRecipe_init();
+				end
+			</OnEvent>
+		</Scripts>
+	</Frame>
+ 
 	<GameTooltip name="LookNewRecipe_ScanningTooltip" inherits="GameTooltipTemplate">
 		<Scripts>
 			<OnLoad>
