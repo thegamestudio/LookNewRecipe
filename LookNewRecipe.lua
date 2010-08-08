@@ -1,3 +1,6 @@
+closeFrame = CreateFrame("Frame")
+background = MerchantFrame:CreateTexture("TestFrameBackground", "BACKGROUND")
+
 function checkInventory(...)
 	local numMerchantItems = GetMerchantNumItems()
 	knownRecipes = {}
@@ -44,6 +47,8 @@ function checkInventory(...)
 	if # unknownRecipes > 0 then
 		ChatFrame1:AddMessage("Look! New recipe!", 1.0, 0.22, 1.0);
 		printTable(unknownRecipes)
+		PlayNewRecipeSound()
+		ShowNewRecipeTexture()
 	end
 	
 	if # knownRecipes > 0 then
@@ -140,7 +145,36 @@ end
 
 function LookNewRecipe_showSettings()
 	ChatFrame1:AddMessage("Look! New Recipe! settings don't exist.", 1.0, 0.22, 1.0);
+	--PlayNewRecipeSound()
+	--ShowNewRecipeTexture()
 end
+
+function ShowNewRecipeTexture()
+	-- Create a sample frame and give it a visible background color
+	background:Show()
+	closeFrame:RegisterEvent("MERCHANT_CLOSED")
+	closeFrame:SetScript("OnEvent",HideNewRecipeTexture)
+	background:SetTexture("Interface\\Addons\\LookNewRecipe\\assets\\textures\\alert-image.tga")
+
+	-- Set the top left corner 5px to the right and 15px above UIParent's top left corner
+	background:SetPoint("TOPLEFT", 170,-450)
+	 
+	-- Set the bottom edge to be 10px below WorldFrame's center
+	background:SetWidth(195)
+
+	-- Set the right edge to be 20px to the left of WorldFrame's right edge
+	background:SetHeight(195)
+end
+
+function HideNewRecipeTexture()
+	background:Hide()
+end
+
+function PlayNewRecipeSound()
+	local num = math.random(12)
+	PlaySoundFile("Interface\\Addons\\LookNewRecipe\\assets\\sounds\\nr"..num..".ogg")
+end
+
 
 function LookNewRecipe_init()
 	--First, we want to determine the tradeskills our player has.
