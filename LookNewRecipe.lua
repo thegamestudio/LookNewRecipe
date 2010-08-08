@@ -19,7 +19,11 @@ function cacheInventory(...)
 		local link = GetMerchantItemLink(i)
 		--print(i)
 		--print(link)
-		LookNewRecipe_ScanningTooltip:SetHyperlink(link)
+		if link then --trying to catch errors here
+			LookNewRecipe_ScanningTooltip:SetHyperlink(link)
+		else
+			break
+		end
 	end
 	
 end
