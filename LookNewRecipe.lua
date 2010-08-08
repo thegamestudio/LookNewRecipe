@@ -14,7 +14,6 @@ function cacheInventory(...)
 	--print("loop "..loopCount)
 	if (loopCount > maxLoops) then
 		LookNewRecipe_ScanningTooltip:SetScript("OnTooltipSetItem",nil)
-		print("MAX LOOPS")
 		return 0
 	end
 	--print("Caching inventory...")
@@ -67,6 +66,7 @@ end
 function checkInventory(...)
 
 	local numMerchantItems = GetMerchantNumItems()
+	--print(MerchantFrame:GetWidth())
 	animationGroup:SetScript("OnFinished", nil)
 	LookNewRecipe_ScanningTooltip:SetScript("OnTooltipSetItem",nil)
 	knownRecipes = {}
@@ -223,13 +223,26 @@ function ShowNewRecipeTexture()
 	background:SetTexture("Interface\\Addons\\LookNewRecipe\\assets\\textures\\alert-image.tga")
 
 	-- Set the top left corner 5px to the right and 15px above UIParent's top left corner
-	background:SetPoint("TOPLEFT", 170,-450)
+	background:SetPoint("TOPLEFT", 142,-340)
 	 
 	-- Set the bottom edge to be 10px below WorldFrame's center
-	background:SetWidth(195)
+	background:SetWidth(220)
 
 	-- Set the right edge to be 20px to the left of WorldFrame's right edge
-	background:SetHeight(195)
+	background:SetHeight(110)
+	closeFrame:SetScript("OnUpdate",RollDown)
+end
+
+function RollDown()
+	local point, relativeTo, relativePoint, xOffset, yOffset = background:GetPoint(1)
+	
+	if (yOffset + 454) < 3 then
+		--handle anim done
+		closeFrame:SetScript("OnUpdate",nil)
+	else
+		local newTop = (yOffset + 454) * 0.025
+		background:SetPoint("TOPLEFT",142,yOffset-newTop)
+	end
 end
 
 function HideNewRecipeTexture()
