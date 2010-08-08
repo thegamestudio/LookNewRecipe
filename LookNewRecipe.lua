@@ -1,13 +1,22 @@
 closeFrame = CreateFrame("Frame")
 background = MerchantFrame:CreateTexture("TestFrameBackground", "BACKGROUND")
+loopCount = 0
+maxLoops = 10
 
 local timerFrame = CreateFrame("Frame")
 local animationGroup = timerFrame:CreateAnimationGroup()
 local animation = animationGroup:CreateAnimation("Animation")
-animation:SetDuration(3) -- timer set to 3 sec
+animation:SetDuration(2) -- timer set to 3 sec
 animationGroup:SetLooping("NONE")
 
 function cacheInventory(...)
+	loopCount = loopCount + 1
+	--print("loop "..loopCount)
+	if (loopCount > maxLoops) then
+		LookNewRecipe_ScanningTooltip:SetScript("OnTooltipSetItem",nil)
+		print("MAX LOOPS")
+		return 0
+	end
 	--print("Caching inventory...")
 	local numMerchantItems = GetMerchantNumItems()
 	--print(numMerchantItems)
@@ -30,25 +39,28 @@ end
 
 function checkCache()
 	--print("Checking cache...")
-	local trace = "Validating item cache..."
-	local numMerchantItems = GetMerchantNumItems()
-	local allCached = true
-	for i = 1, numMerchantItems do
-		if GetMerchantItemLink(i) == nil then
-			allCached = false
-			trace = trace.."invalid."
-			break
+	--We want to make sure the item on our tooltip exists.
+	if LookNewRecipe_ScanningTooltip:GetItem() then
+		local trace = "Validating item cache..."
+		local numMerchantItems = GetMerchantNumItems()
+		local allCached = true
+		for i = 1, numMerchantItems do
+			if GetMerchantItemLink(i) == nil then
+				allCached = false
+				trace = trace.."invalid."
+				break
+			end
 		end
-	end
-	
-	if allCached then
-		trace = trace.."valid!"
-		--print(trace)
-		LookNewRecipe_ScanningTooltip:SetScript("OnTooltipSetItem",nil)
-		checkInventory()
-	else
-		--print(trace)
-		LookNewRecipe_ScanningTooltip:SetScript("OnTooltipSetItem",cacheInventory)
+		
+		if allCached then
+			trace = trace.."valid!"
+			--print(trace)
+			LookNewRecipe_ScanningTooltip:SetScript("OnTooltipSetItem",nil)
+			checkInventory()
+		else
+			--print(trace)
+			LookNewRecipe_ScanningTooltip:SetScript("OnTooltipSetItem",cacheInventory)
+		end
 	end
 end
 
@@ -229,6 +241,13 @@ function PlayNewRecipeSound()
 	PlaySoundFile("Interface\\Addons\\LookNewRecipe\\assets\\sounds\\nr"..num..".ogg")
 end
 
+function MerchantShowHandler(...)
+	loopCount = 0
+	LookNewRecipe_ScanningTooltip:SetScript("OnTooltipSetItem",nil)
+	animationGroup:SetScript("OnFinished", nil)
+	cacheInventory(...)
+end
+
 function LookNewRecipe_init()
 	--First, we want to determine the tradeskills our player has.
 
@@ -238,7 +257,7 @@ function LookNewRecipe_init()
 	eventFrame:SetScript("OnEvent", function() Professions:Update() end)
 	local frame = CreateFrame("Frame")
 	frame:RegisterEvent("MERCHANT_SHOW")
-	frame:SetScript("OnEvent", cacheInventory)
+	frame:SetScript("OnEvent", MerchantShowHandler)
 	ChatFrame1:AddMessage("Look! New Recipe! loaded. Type /LNR for settings.", 1.0, 0.22, 1.0);
 	SlashCmdList["LOOK_NEW_RECIPE"] = LookNewRecipe_showSettings;
 	SLASH_LOOK_NEW_RECIPE1 = "/looknewrecipe";
