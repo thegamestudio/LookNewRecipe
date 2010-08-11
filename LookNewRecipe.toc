@@ -1,4 +1,5 @@
 ## Interface: 30300
 ## Title: Look! New Recipe!
 ## Notes: Alerts the player whenever a merchant is selling an unknown recipe.
+## SavedVariables: LookNewRecipe_Settings
 LookNewRecipe.xml

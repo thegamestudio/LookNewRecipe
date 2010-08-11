@@ -1,7 +1,14 @@
+LookNewRecipe = {}
+LookNewRecipe_Settings = {
+	playSound = 1
+}
+
 closeFrame = CreateFrame("Frame")
 background = MerchantFrame:CreateTexture("TestFrameBackground", "BACKGROUND")
 loopCount = 0
 maxLoops = 10
+--LookNewRecipe_ScanningTooltip = CreateFrame("GameTooltip")
+--LookNewRecipe_ScanningTooltip:SetOwner(UIParent, "ANCHOR_NONE");
 
 local timerFrame = CreateFrame("Frame")
 local animationGroup = timerFrame:CreateAnimationGroup()
@@ -113,7 +120,9 @@ function checkInventory(...)
 	if # unknownRecipes > 0 then
 		ChatFrame1:AddMessage("Look! New recipe!", 1.0, 0.22, 1.0);
 		printTable(unknownRecipes)
-		PlayNewRecipeSound()
+		if LookNewRecipe_Settings.playSound == 1 then
+			PlayNewRecipeSound()
+		end
 		ShowNewRecipeTexture()
 	end
 	
@@ -209,12 +218,6 @@ function Professions:Display()
 	end
 end
 
-function LookNewRecipe_showSettings()
-	ChatFrame1:AddMessage("Look! New Recipe! settings don't exist.", 1.0, 0.22, 1.0);
-	--PlayNewRecipeSound()
-	--ShowNewRecipeTexture()
-end
-
 function ShowNewRecipeTexture()
 	-- Create a sample frame and give it a visible background color
 	background:Show()
@@ -262,18 +265,60 @@ function MerchantShowHandler(...)
 end
 
 function LookNewRecipe_init()
-	--First, we want to determine the tradeskills our player has.
-
-	local eventFrame = CreateFrame("Frame")
-	eventFrame:Hide()
-	eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
-	eventFrame:SetScript("OnEvent", function() Professions:Update() end)
-	local frame = CreateFrame("Frame")
-	frame:RegisterEvent("MERCHANT_SHOW")
-	frame:SetScript("OnEvent", MerchantShowHandler)
-	ChatFrame1:AddMessage("Look! New Recipe! loaded. Type /LNR for settings.", 1.0, 0.22, 1.0);
-	SlashCmdList["LOOK_NEW_RECIPE"] = LookNewRecipe_showSettings;
+	--Let's set up our slash commands.
+	SlashCmdList["LOOK_NEW_RECIPE"] = LookNewRecipe_ShowSettings;
 	SLASH_LOOK_NEW_RECIPE1 = "/looknewrecipe";
 	SLASH_LOOK_NEW_RECIPE2 = "/lnr";
+
+	--Set up our frames
+	LookNewRecipe.eventFrame = CreateFrame("Frame")
+	LookNewRecipe.eventFrame:Hide()
+	LookNewRecipe.eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+	LookNewRecipe.eventFrame:SetScript("OnEvent", function() Professions:Update() end)
+	LookNewRecipe.frame = CreateFrame("Frame")
+	LookNewRecipe.frame:RegisterEvent("MERCHANT_SHOW")
+	LookNewRecipe.frame:SetScript("OnEvent", MerchantShowHandler)
+		
+	
+	ChatFrame1:AddMessage("Look! New Recipe! loaded. Type /LNR for settings.", 1.0, 0.22, 1.0);
+	SetupOptionsPanel()
+	
+	--Deal with some settings.
+	if LookNewRecipe_Settings.playSound == nil then
+		LookNewRecipe_Settings.playSound = 1
+	end
 	--NewRecipe_loadSettings();
 end
+
+function LookNewRecipe_ShowSettings()
+	InterfaceOptionsFrame_OpenToCategory(LookNewRecipe.settingsPanel)
+end
+
+function UpdateSettings()
+	LookNewRecipe.playSounds_check:SetChecked(LookNewRecipe_Settings.playSound == 1)
+end
+
+function SaveSettings()
+	if LookNewRecipe.playSounds_check:GetChecked() then
+		LookNewRecipe_Settings.playSound = 1
+	else
+		LookNewRecipe_Settings.playSound = 0
+	end
+end
+
+ function SetupOptionsPanel()
+	LookNewRecipe.settingsPanel = CreateFrame( "Frame", "MyAddonPanel", UIParent );
+	LookNewRecipe.settingsPanel:SetScript("OnShow",UpdateSettings)
+	-- Register in the Interface Addon Options GUI
+	-- Set the name for the Category for the Options Panel
+	LookNewRecipe.settingsPanel.name = "Look! New Recipe!";
+	-- Add the panel to the Interface Options
+	InterfaceOptions_AddCategory(LookNewRecipe.settingsPanel);
+
+	LookNewRecipe.playSounds_check = CreateFrame( "CheckButton", "PlaySounds", LookNewRecipe.settingsPanel, "UICheckButtonTemplate")
+	LookNewRecipe.playSounds_check:ClearAllPoints()
+	LookNewRecipe.playSounds_check:SetPoint("Center",0,0)
+	_G[LookNewRecipe.playSounds_check:GetName() .. "Text"]:SetText("Play Sounds")
+	
+	LookNewRecipe.settingsPanel.okay = function(self) SaveSettings(); end;
+ end
